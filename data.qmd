@@ -1,5 +1,285 @@
 ---
 title: "Data"
+format:
+  html:
+    code-fold: true
+    code-tools: true
+execute:
+  echo: true
+  warning: false
+  message: false
 ---
 
-Data source: xxx
+## Data Set Description
+
+As we are working on our project with the population aged 15 and above, we selected to work with the data set Main Labor Force Indicators. This data collection contains monthly data on the labor market in Türkiye.
+
+The data basically illustrates how many people are in the labor force, how many people are employed, the number of people that are unemployed and how many people are not included in the labor force. It also has big percentage numbers like the participation rate of the labor force, the employment rate and the unemployment rate.
+
+Data from January 2005 to February 2026. The data is on a monthly basis and is thus valuable in tracking short-term movements in the employment market.
+
+## Source of Data
+
+The data set was obtained from [TÜİK Labor Force Statistics](https://veriportali.tuik.gov.tr/tr/press/54061). We chose this source since the Turkish statistics Institute (TÜİK) is the official statistics institution of Türkiye. Thus, the data is reliable and appropriate for our purpose.
+
+## Data Set Variables
+
+The dataset includes a number of key labor market factors.
+
+The first variable is time period. It gives year and month of each observation.
+
+Total population 15 years and over is the total population of persons 15 years and over.
+
+Labor force The number of persons who are either employed or seeking employment.
+
+Employment displays how many people are employed right now.
+
+Unemployment is the amount of persons who are not working yet are actively seeking job.
+
+Not in labor force displays the number of people who are not in the labor market.
+
+Labor force participation rate is the proportion of the population aged 15 years and over that is in the labor force.
+
+Employment rate: percentage of employed people in the population aged 15 and above.
+
+The unemployment rate is the share of jobless people in the labor force.
+
+Some variables are reported in thousands of persons while the rate variables are reported as percentages.
+
+## Why We Chose the Data Set?
+
+We chose this data set because employment and unemployment are some of the most important indicators of an economy. These statistics provide us an idea of the general state of the labor market.
+
+Another argument for adopting this data is that it is straightforward to understand and may be used for visual analysis. The data is monthly so we can compare months and observe if there are gains or drops in labor market variables.
+
+Our main objective is to present the significant developments in the general labor market situation in Türkiye in a straightforward way.
+
+## Data Importing
+
+The data was given as an excel file. We loaded the file into R and prepped it for analysis.
+
+The original Excel file has titles, comments, Turkish and English labels and separate parts, therefore it was not instantly ready for analysis. That’s why we first checked the data structure and then cleaned it up.
+
+```{r}
+library(readxl)
+raw_data <- read_excel("employement_data.xls", skip = 4, col_names = FALSE)
+```
+
+## Data Preparation
+
+```{r}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(lubridate)
+
+raw_data <- read_excel("employement_data.xls", skip = 4, col_names = FALSE)
+
+base_cols <- c("year", "month_raw", "pop_15_plus", "labor_force", "employment", 
+               "unemployment", "not_in_labor_force", "lfp_rate", "emp_rate", "unemp_rate")
+
+df_total <- raw_data[, 1:10]
+colnames(df_total) <- base_cols
+df_total$gender <- "Total"
+
+df_male <- raw_data[, 12:21] 
+colnames(df_male) <- base_cols
+df_male$gender <- "Male"
+
+df_female <- raw_data[, 23:32] 
+colnames(df_female) <- base_cols
+df_female$gender <- "Female"
+
+df_combined <- bind_rows(df_total, df_male, df_female)
+
+df_clean <- df_combined |>
+  
+  filter(!is.na(month_raw) & !str_detect(month_raw, "Kaynak|Source")) |>
+  
+  
+  fill(year, .direction = "down") |>
+  mutate(year = as.numeric(year)) |>
+  
+  
+  separate(month_raw, into = c("month_tr", "month_en"), sep = " - ", extra = "merge") |>
+  mutate(
+    month_tr = str_trim(month_tr),
+    month_en = str_trim(month_en)
+  ) |>
+  
+  
+  mutate(
+    month_no = case_when(
+      month_en == "January" ~ 1, month_en == "February" ~ 2, month_en == "March" ~ 3,
+      month_en == "April" ~ 4, month_en == "May" ~ 5, month_en == "June" ~ 6,
+      month_en == "July" ~ 7, month_en == "August" ~ 8, month_en == "September" ~ 9,
+      month_en == "October" ~ 10, month_en == "November" ~ 11, month_en == "December" ~ 12
+    ),
+    
+    date = make_date(year, month_no, 1)
+  ) |>
+  
+  
+  mutate_at(vars(pop_15_plus:unemp_rate), as.numeric) |>
+  
+  
+  select(year, month_no, month_tr, month_en, date, gender, 
+         pop_15_plus, labor_force, employment, unemployment, 
+         not_in_labor_force, lfp_rate, emp_rate, unemp_rate)
+
+
+write.csv(df_clean, "labor_final_clean.csv", row.names = FALSE, na = "")
+
+
+save(df_clean, file = "labor_final_clean.RData")
+
+
+## AI Usage: Used for creating month variables (lubridate library), seperating the columns of data.
+## AI Prompt: "Help me while converting to our xls data to csv, I don't know how to seperate the columns truly."
+```
+
+The first Excel file was not directly good for analysis. Because it have multiple header rows, two language labels, note rows and different parts for Total, Male and Female side by side.
+
+In this step, we import the raw file and deleted unnecessary rows. We separated this three gender blocks and combined them to make one long dataset. The month informations was splitted to Turkish and English names. Also we created a standard date variable. All labor market indicators converted to numeric format.
+
+Finally, we saved the clean dataset as CSV and RData file for use it again in our project.
+
+## Cleaned Dataset Check
+
+```{r}
+library(tidyverse)
+library(readr)
+library(scales)
+library(knitr)
+
+labor_data <- read_csv(
+  "labor_final_clean.csv",
+  locale = locale(encoding = "UTF-8")
+)
+
+labor_data <- labor_data |>
+  mutate(
+    date = as.Date(date),
+    year = as.integer(year),
+    month_no = as.integer(month_no),
+    gender = factor(gender, levels = c("Total", "Male", "Female")),
+    month_en = factor(
+      month_en,
+      levels = c(
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      )
+    )
+  )
+
+
+total_data <- labor_data |>
+  filter(gender == "Total")
+
+
+gender_data <- labor_data |>
+  filter(gender %in% c("Male", "Female"))
+
+
+yearly_total <- total_data |>
+  group_by(year) |>
+  summarize(
+    avg_unemp_rate = mean(unemp_rate, na.rm = TRUE),
+    avg_emp_rate = mean(emp_rate, na.rm = TRUE),
+    avg_lfp_rate = mean(lfp_rate, na.rm = TRUE),
+    avg_employment = mean(employment, na.rm = TRUE),
+    avg_unemployment = mean(unemployment, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+yearly_gender <- gender_data |>
+  group_by(year, gender) |>
+  summarize(
+    avg_unemp_rate = mean(unemp_rate, na.rm = TRUE),
+    avg_emp_rate = mean(emp_rate, na.rm = TRUE),
+    avg_lfp_rate = mean(lfp_rate, na.rm = TRUE),
+    avg_employment = mean(employment, na.rm = TRUE),
+    avg_unemployment = mean(unemployment, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+data_check <- labor_data |>
+  summarize(
+    number_of_rows = n(),
+    number_of_columns = ncol(labor_data),
+    first_date = min(date),
+    last_date = max(date),
+    number_of_genders = n_distinct(gender),
+    missing_values = sum(is.na(labor_data))
+  )
+
+kable(data_check)
+
+
+## AI Usage: Learned how to use kable and scales library.
+## AI Prompt: I want to check the data's basic structure and also want to show them on our webpage, how can I do this?
+```
+
+After we prepare the dataset, we checked if the clean data have the expected structure. This step summarize number of rows and columns, the date range of data, how many gender categories we have and total missing values.
+
+These checks is helping to confirm that data cleaning process make a consistent and ready to analysis dataset before we move to visualization and interpretation.
+
+## Variable Dictionary
+
+The variable dictionary defines the columns used in the cleaned data set and clarifies the measurement unit of each labor market indicator.
+
+```{r}
+variable_dictionary <- tibble(
+  variable = c(
+    "year", "month_no", "month_tr", "month_en", "date", "gender",
+    "pop_15_plus", "labor_force", "employment", "unemployment",
+    "not_in_labor_force", "lfp_rate", "emp_rate", "unemp_rate"
+  ),
+  meaning = c(
+    "Year of observation",
+    "Month number",
+    "Month name in Turkish",
+    "Month name in English",
+    "Monthly date in YYYY-MM-DD format",
+    "Gender group: Total, Male, Female",
+    "Population aged 15 and over, reported in thousand persons",
+    "Number of people in the labor force, reported in thousand persons",
+    "Number of employed people, reported in thousand persons",
+    "Number of unemployed people, reported in thousand persons",
+    "Number of people not included in the labor force, reported in thousand persons",
+    "Labor force participation rate, reported as a percentage",
+    "Employment rate, reported as a percentage",
+    "Unemployment rate, reported as a percentage"
+  )
+)
+
+kable(variable_dictionary)
+```
+
+## Missing Data
+
+The cleaned dataset was checked for missing values in order to ensure consistency before the analysis stage.
+
+```{r}
+missing_data_summary <- labor_data |>
+  summarize(across(everything(), ~ sum(is.na(.))))
+
+kable(missing_data_summary)
+```
+
+We also looked for any missing values in the data set. This is significant, because the missing values can influence the outcomes of the analysis and the visualizations.
+
+We deleted empty rows or superfluous cells. But we didn't modify any significant values without first seeing what they represented.
+
+## Final Data Set
+
+After cleaning and processing the raw Excel file, the final analysis-ready dataset was saved in `.RData` format so that it can be reused consistently throughout the project.
+
+[Download the final cleaned RData file](labor_final_clean.RData)
+
+## Overview
+
+In this page we described what our data set is about, where it comes from, what variables it consists of and how we prepared it for analysis. The following phase of the project we will use this cleaned data set to produce visualizations and discuss the main findings.

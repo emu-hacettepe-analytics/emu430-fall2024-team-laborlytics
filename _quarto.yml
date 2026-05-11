@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "xxx' Project Lab"
+  title: "LaborLytics Project Lab"
   navbar:
     search: true
     left:
@@ -11,26 +11,31 @@ website:
         href: index.qmd
       - text: Data
         href: data.qmd
-      - text: Analysis
-        href: analysis.qmd
+      - text: Analysis and Graphs
+        href: Analysis and Graphs.qmd
+      - text: Labor Market Health Check
+        href: health-check.qmd
+      - text: Guess the Year?
+        href: guess-test.qmd
+
+
+
 
             
     tools:
       - icon: github
-        href: https://twitter.com
+        href: https://github.com/emu-hacettepe-analytics/emu430-fall2024-team-laborlytics
 
   page-navigation: true
   back-to-top-navigation: true
   page-footer:
-    center: "Hacettepe IE - EMU 430 - Fall 2024" 
+    center: "Hacettepe IE - EMU 430 - Spring 2026" 
     border: true
 format:
   html:
     toc: true
     toc-location: left
-    theme: 
-      light: simplex 
-      dark: cyborg
+    theme: simplex
     css: styles.css
 
 

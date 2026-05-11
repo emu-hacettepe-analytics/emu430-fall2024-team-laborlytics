@@ -1,1 +1,397 @@
-/* css styles */
+:root {
+  --mother-pearl: #e0dac9;
+  --powder-blue: #8297ad;
+  --mystic-navy: #13273f;
+  --red-inferno: #4e0000;
+  --chocolate: #6f4b37;
+
+  --bg: #f6f2ea;
+  --card: #fffaf2;
+  --text: #18202a;
+  --muted: #6b625a;
+  --border: rgba(19, 39, 63, 0.16);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.navbar {
+  background: var(--red-inferno) !important;
+  box-shadow: 0 12px 32px rgba(78, 0, 0, 0.28);
+}
+
+.navbar-brand,
+.navbar a {
+  color: var(--mother-pearl) !important;
+  font-weight: 700;
+}
+
+.navbar a:hover {
+  color: #ffffff !important;
+}
+
+.quarto-title-banner {
+  background: var(--mystic-navy);
+  color: var(--mother-pearl);
+  padding: 3.6rem 1rem;
+  border-radius: 0 0 38px 38px;
+  box-shadow: 0 20px 50px rgba(19, 39, 63, 0.22);
+}
+
+.quarto-title-banner h1 {
+  color: var(--mother-pearl);
+}
+
+main.content {
+  max-width: 1080px;
+}
+
+h1, h2, h3 {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--mystic-navy);
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  margin-top: 2.8rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 2px solid rgba(19, 39, 63, 0.14);
+}
+
+h3 {
+  color: var(--chocolate);
+}
+
+p {
+  line-height: 1.78;
+  color: #343b45;
+}
+
+.cell {
+  background: rgba(255, 250, 242, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 1.35rem;
+  margin: 1.6rem 0;
+  box-shadow: 0 18px 42px rgba(19, 39, 63, 0.10);
+  transition: all 0.32s ease;
+}
+
+.cell:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 65px rgba(19, 39, 63, 0.16);
+}
+
+details {
+  background: rgba(224, 218, 201, 0.58);
+  border: 1px solid rgba(19, 39, 63, 0.15);
+  border-radius: 22px;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 12px 30px rgba(19, 39, 63, 0.08);
+  transition: all 0.3s ease;
+}
+
+details:hover {
+  background: rgba(130, 151, 173, 0.22);
+  transform: translateY(-2px);
+}
+
+details[open] {
+  background: rgba(255, 250, 242, 0.95);
+}
+
+summary {
+  color: var(--mystic-navy);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sourceCode {
+  border-radius: 18px;
+  background: #fbf7ee !important;
+  border: 1px solid rgba(19, 39, 63, 0.15);
+}
+
+img,
+.figure,
+.cell-output-display {
+  border-radius: 26px;
+}
+
+.cell-output-display {
+  background: white;
+  padding: 0.6rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: 0 14px 34px rgba(19, 39, 63, 0.10);
+}
+
+thead {
+  background: var(--mystic-navy);
+  color: var(--mother-pearl);
+}
+
+th {
+  padding: 0.85rem;
+  font-weight: 800;
+}
+
+td {
+  padding: 0.78rem;
+  border-bottom: 1px solid rgba(19, 39, 63, 0.12);
+}
+
+tr:nth-child(even) {
+  background: rgba(224, 218, 201, 0.38);
+}
+
+tr:hover {
+  background: rgba(130, 151, 173, 0.22);
+}
+
+button,
+.btn,
+input[type="button"],
+input[type="submit"] {
+  background: var(--red-inferno);
+  color: var(--mother-pearl);
+  border: none;
+  border-radius: 999px;
+  padding: 0.82rem 1.5rem;
+  font-weight: 800;
+  box-shadow: 0 14px 34px rgba(78, 0, 0, 0.26);
+  transition: all 0.26s ease;
+}
+
+button:hover,
+.btn:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover {
+  background: var(--chocolate);
+  transform: translateY(-3px);
+  box-shadow: 0 22px 48px rgba(78, 0, 0, 0.34);
+}
+
+input,
+select,
+textarea {
+  border-radius: 18px !important;
+  border: 1px solid rgba(19, 39, 63, 0.22) !important;
+  background: rgba(255, 250, 242, 0.92) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: var(--powder-blue) !important;
+  box-shadow: 0 0 0 4px rgba(130, 151, 173, 0.28) !important;
+}
+
+a {
+  color: var(--mystic-navy);
+  font-weight: 650;
+}
+
+a:hover {
+  color: var(--red-inferno);
+}
+
+footer,
+.nav-footer {
+  color: var(--muted);
+  border-top: 1px solid rgba(19, 39, 63, 0.14);
+  margin-top: 4rem;
+  padding-top: 2rem;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: rgba(19, 39, 63, 0.16);
+}
+
+blockquote {
+  border-left: 5px solid var(--red-inferno);
+  background: rgba(224, 218, 201, 0.42);
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+}
+
+a[href$=".RData"],
+a[href$=".csv"],
+a[href$=".xlsx"],
+a[href$=".xls"] {
+  display: inline-block;
+  background: var(--mystic-navy);
+  color: white !important;
+  padding: 0.75rem 1.2rem;
+  border-radius: 999px;
+  text-decoration: none;
+  margin-top: 0.5rem;
+  box-shadow: 0 12px 28px rgba(19, 39, 63, 0.22);
+  transition: all 0.25s ease;
+}
+
+a[href$=".RData"]:hover,
+a[href$=".csv"]:hover,
+a[href$=".xlsx"]:hover,
+a[href$=".xls"]:hover {
+  background: var(--red-inferno);
+  transform: translateY(-3px);
+}
+
+
+.video-card {
+  background: var(--card, #fffaf2);
+  border: 1px solid rgba(19, 39, 63, 0.16);
+  border-radius: 30px;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 760px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(19, 39, 63, 0.10);
+}
+
+.video-card h2 {
+  margin-top: 0;
+}
+
+.video-card p {
+  margin-bottom: 1rem;
+}
+
+.video-card video,
+.home-video {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 430px;
+  object-fit: contain;
+  border-radius: 22px;
+  background: #000;
+  box-shadow: 0 14px 34px rgba(19, 39, 63, 0.14);
+}
+
+.sidebar,
+.sidebar nav,
+.sidebar .toc-active,
+#TOC,
+nav#TOC {
+  background: var(--bg, #f6f2ea) !important;
+}
+
+.sidebar nav[role="doc-toc"],
+#TOC {
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 18px 42px rgba(78, 0, 0, 0.18);
+  padding: 1.2rem 1rem;
+}
+
+.sidebar.margin-sidebar,
+#quarto-margin-sidebar {
+  background: var(--bg, #f6f2ea) !important;
+  box-shadow: 0 18px 42px rgba(78, 0, 0, 0.14);
+}
+
+:root {
+  --sidebar-bg: #fbf7ee;
+}
+
+#quarto-margin-sidebar,
+.sidebar.margin-sidebar,
+.page-columns .column-margin,
+.page-columns .margin-sidebar {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:root {
+  --sidebar-bg: #fbf8f1; /* kırık beyaz */
+}
+
+#quarto-margin-sidebar,
+.sidebar.margin-sidebar,
+.page-columns .column-margin,
+.page-columns .margin-sidebar {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sidebar nav[role="doc-toc"],
+#TOC {
+  background: var(--sidebar-bg) !important;
+  border: 1px solid rgba(19, 39, 63, 0.10);
+  border-radius: 22px;
+  padding: 1rem 1rem;
+  box-shadow: none !important;
+}
+
+.sidebar nav[role="doc-toc"] a,
+#TOC a {
+  color: var(--mystic-navy, #13273f) !important;
+}
+
+.sidebar nav[role="doc-toc"] a:hover,
+#TOC a:hover {
+  color: var(--red-inferno, #4e0000) !important;
+}
+
+.sidebar nav[role="doc-toc"] .active,
+#TOC .active {
+  border-left: 2px solid var(--red-inferno, #4e0000) !important;
+  color: var(--red-inferno, #4e0000) !important;
+  padding-left: 0.5rem;
+}
+
+.navbar .aa-DetachedSearchButton,
+.navbar .aa-DetachedSearchButtonIcon,
+.navbar .aa-SubmitIcon,
+.navbar .quarto-search-button,
+.navbar .quarto-search-button i,
+.navbar .bi-search {
+  color: var(--mother-pearl, #e0dac9) !important;
+  fill: var(--mother-pearl, #e0dac9) !important;
+  stroke: var(--mother-pearl, #e0dac9) !important;
+}
+
+.navbar .aa-DetachedSearchButton:hover,
+.navbar .quarto-search-button:hover,
+.navbar .bi-search:hover {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.hero-logo {
+  text-align: center;
+  margin: 1.5rem 0 2rem 0;
+}
+
+.hero-logo img {
+  width: 420px;      /* boyut */
+  max-width: 85%;    /* responsive */
+  height: auto;
+}
+
+/* AI Usage: All of the styling is created by AI.
+AI Prompt: I will send a picture of color schema, we want to use the schema on our webpage. Also I want to modern webpage interface (rounded corners, modern font, shadows etc.).*/

@@ -1,0 +1,494 @@
+---
+title: "Labor Market Health Check"
+---
+
+---
+title: "Labor Market Health Check"
+format:
+  html:
+    code-fold: false
+    code-tools: false
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| results: asis
+
+library(jsonlite)
+
+labor_data <- read.csv("labor_final_clean.csv", stringsAsFactors = FALSE)
+
+labor_data$label <- paste(labor_data$year, labor_data$month_en, labor_data$gender)
+
+data_json <- jsonlite::toJSON(labor_data, dataframe = "rows", auto_unbox = TRUE)
+
+cat("<script>")
+cat("const labourData = ")
+cat(data_json)
+cat(";")
+cat("</script>")
+```
+
+```{=html}
+<style>
+.game-container {
+  max-width: 1050px;
+  margin: 30px auto;
+  padding: 30px;
+  border-radius: 28px;
+  background: #f7f8fa;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+  font-family: Arial, sans-serif;
+}
+
+.game-title {
+  font-size: 38px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.game-subtitle {
+  font-size: 17px;
+  color: #555;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.control-box {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid #e0e0e0;
+}
+
+select {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1px solid #bbb;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.result-card {
+  padding: 28px;
+  border-radius: 24px;
+  border: 3px solid #ddd;
+  background: white;
+  transition: 0.3s ease;
+}
+
+.result-strong {
+  border-color: #2e7d32;
+  background: #e8f5e9;
+}
+
+.result-moderate {
+  border-color: #f9a825;
+  background: #fff8e1;
+}
+
+.result-weak {
+  border-color: #c62828;
+  background: #ffebee;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #263238;
+  color: white;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.condition {
+  font-size: 50px;
+  font-weight: 900;
+  margin: 12px 0;
+  letter-spacing: 3px;
+}
+
+.score {
+  font-size: 21px;
+  margin-bottom: 20px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 18px;
+}
+
+.metric-box {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.comment-box {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  margin-top: 22px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.bar-area {
+  margin-top: 26px;
+}
+
+.bar-row {
+  margin-bottom: 16px;
+}
+
+.bar-label {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.bar-background {
+  width: 100%;
+  background: #e0e0e0;
+  border-radius: 999px;
+  height: 22px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 22px;
+  border-radius: 999px;
+  background: #607d8b;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+.insight-box {
+  margin-top: 24px;
+  padding: 22px;
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #ddd;
+  line-height: 1.55;
+}
+
+.chart-box {
+  margin-top: 24px;
+  padding: 22px;
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #ddd;
+}
+
+canvas {
+  width: 100%;
+  height: 320px;
+}
+
+@media (max-width: 750px) {
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="game-container">
+  <div class="game-title">Labor Market Game</div>
+  <div class="game-subtitle">
+    Choose a gender group and a month. The game scores the labor market using unemployment rate, employment rate, and labor force participation rate.
+  </div>
+
+  <div class="control-grid">
+    <div class="control-box">
+      <label for="genderSelect"><b>Select Group</b></label>
+      <select id="genderSelect" onchange="fillPeriodDropdown(); updateGame();"></select>
+    </div>
+
+    <div class="control-box">
+      <label for="periodSelect"><b>Select Month</b></label>
+      <select id="periodSelect" onchange="updateGame();"></select>
+    </div>
+  </div>
+
+  <div id="resultCard" class="result-card">
+    <div class="badge">Labour Market Result</div>
+    <h2 id="selectedPeriod"></h2>
+    <div id="conditionText" class="condition"></div>
+    <div id="scoreText" class="score"></div>
+
+    <div class="metrics">
+      <div class="metric-box">
+        <div id="unemploymentValue" class="metric-value"></div>
+        <div class="metric-label">Unemployment Rate</div>
+      </div>
+
+      <div class="metric-box">
+        <div id="employmentValue" class="metric-value"></div>
+        <div class="metric-label">Employment Rate</div>
+      </div>
+
+      <div class="metric-box">
+        <div id="participationValue" class="metric-value"></div>
+        <div class="metric-label">Participation Rate</div>
+      </div>
+    </div>
+
+    <div id="commentText" class="comment-box"></div>
+
+    <div class="bar-area">
+      <div class="bar-row">
+        <div class="bar-label">Employment Strength</div>
+        <div class="bar-background">
+          <div id="employmentBar" class="bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <div class="bar-label">Participation Strength</div>
+        <div class="bar-background">
+          <div id="participationBar" class="bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <div class="bar-label">Unemployment Risk</div>
+        <div class="bar-background">
+          <div id="unemploymentBar" class="bar-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <h3>Unemployment Trend for Selected Group</h3>
+    <canvas id="trendChart" width="1000" height="320"></canvas>
+  </div>
+
+  <div class="insight-box">
+    <h3>How does the game work?</h3>
+    <p>
+      The game gives points based on three indicators. Lower unemployment is better, while higher employment and higher labor force participation are better.
+    </p>
+    <p>
+      A total score of 8 or 9 means <b>Strong</b>, 5 to 7 means <b>Moderate</b>, and 3 or 4 means <b>Weak</b>.
+    </p>
+    <p>
+      This tool uses all monthly observations from the cleaned CSV data set.
+    </p>
+  </div>
+</div>
+
+<script>
+function uniqueValues(arr) {
+  return [...new Set(arr)];
+}
+
+function fillGenderDropdown() {
+  const genderSelect = document.getElementById("genderSelect");
+  genderSelect.innerHTML = "";
+
+  const genders = uniqueValues(labourData.map(d => d.gender));
+
+  genders.forEach(gender => {
+    const option = document.createElement("option");
+    option.value = gender;
+    option.text = gender;
+    genderSelect.appendChild(option);
+  });
+
+  if (genders.includes("Total")) {
+    genderSelect.value = "Total";
+  }
+}
+
+function fillPeriodDropdown() {
+  const gender = document.getElementById("genderSelect").value;
+  const periodSelect = document.getElementById("periodSelect");
+
+  periodSelect.innerHTML = "";
+
+  const filtered = labourData.filter(d => d.gender === gender);
+
+  filtered.forEach((d, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.text = d.year + " " + d.month_en;
+    periodSelect.appendChild(option);
+  });
+
+  periodSelect.value = filtered.length - 1;
+}
+
+function getSelectedData() {
+  const gender = document.getElementById("genderSelect").value;
+  const periodIndex = Number(document.getElementById("periodSelect").value);
+
+  const filtered = labourData.filter(d => d.gender === gender);
+
+  return {
+    selected: filtered[periodIndex],
+    filtered: filtered,
+    selectedIndex: periodIndex
+  };
+}
+
+function getScore(selected) {
+  const unemploymentScore = selected.unemp_rate <= 9 ? 3 : selected.unemp_rate <= 12 ? 2 : 1;
+  const employmentScore = selected.emp_rate >= 48 ? 3 : selected.emp_rate >= 43 ? 2 : 1;
+  const participationScore = selected.lfp_rate >= 53 ? 3 : selected.lfp_rate >= 48 ? 2 : 1;
+
+  return unemploymentScore + employmentScore + participationScore;
+}
+
+function updateGame() {
+  const result = getSelectedData();
+  const selected = result.selected;
+  const filtered = result.filtered;
+  const selectedIndex = result.selectedIndex;
+
+  const totalScore = getScore(selected);
+
+  let condition = "";
+  let cardClass = "result-card ";
+  let comment = "";
+
+  if (totalScore >= 8) {
+    condition = "STRONG";
+    cardClass += "result-strong";
+    comment = "This month shows a strong labor market condition. Employment and participation are relatively high, while unemployment is comparatively low.";
+  } else if (totalScore >= 5) {
+    condition = "MODERATE";
+    cardClass += "result-moderate";
+    comment = "This month shows a moderate labor market condition. Some indicators are positive, but the overall picture is not the strongest.";
+  } else {
+    condition = "WEAK";
+    cardClass += "result-weak";
+    comment = "This month shows a weak labor market condition. Unemployment is relatively high, or employment and participation are weaker compared with other months.";
+  }
+
+  document.getElementById("resultCard").className = cardClass;
+  document.getElementById("selectedPeriod").innerText = selected.year + " " + selected.month_en + " - " + selected.gender;
+  document.getElementById("conditionText").innerText = condition;
+  document.getElementById("scoreText").innerText = "Score: " + totalScore + " / 9";
+
+  document.getElementById("unemploymentValue").innerText = selected.unemp_rate + "%";
+  document.getElementById("employmentValue").innerText = selected.emp_rate + "%";
+  document.getElementById("participationValue").innerText = selected.lfp_rate + "%";
+
+  document.getElementById("commentText").innerText = comment;
+
+  document.getElementById("employmentBar").style.width = Math.min(selected.emp_rate * 1.8, 100) + "%";
+  document.getElementById("participationBar").style.width = Math.min(selected.lfp_rate * 1.7, 100) + "%";
+  document.getElementById("unemploymentBar").style.width = Math.min(selected.unemp_rate * 6, 100) + "%";
+
+  drawChart(filtered, selectedIndex);
+}
+
+function drawChart(filtered, selectedIndex) {
+  const canvas = document.getElementById("trendChart");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const padding = 50;
+  const width = canvas.width - padding * 2;
+  const height = canvas.height - padding * 2;
+
+  const values = filtered.map(d => Number(d.unemp_rate));
+  const minVal = Math.min(...values) - 1;
+  const maxVal = Math.max(...values) + 1;
+
+  function xPos(i) {
+    return padding + (i / (filtered.length - 1)) * width;
+  }
+
+  function yPos(v) {
+    return padding + height - ((v - minVal) / (maxVal - minVal)) * height;
+  }
+
+  ctx.strokeStyle = "#dddddd";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i <= 5; i++) {
+    const y = padding + (i / 5) * height;
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(padding + width, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#455a64";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  filtered.forEach((d, i) => {
+    const x = xPos(i);
+    const y = yPos(Number(d.unemp_rate));
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
+
+  filtered.forEach((d, i) => {
+    const x = xPos(i);
+    const y = yPos(Number(d.unemp_rate));
+
+    ctx.beginPath();
+    ctx.arc(x, y, i === selectedIndex ? 6 : 2.3, 0, Math.PI * 2);
+    ctx.fillStyle = i === selectedIndex ? "#c62828" : "#607d8b";
+    ctx.fill();
+  });
+
+  const selected = filtered[selectedIndex];
+
+  ctx.fillStyle = "#222";
+  ctx.font = "16px Arial";
+  ctx.fillText(
+    selected.year + " " + selected.month_en + " | Unemployment: " + selected.unemp_rate + "%",
+    padding,
+    25
+  );
+}
+
+fillGenderDropdown();
+fillPeriodDropdown();
+updateGame();
+</script>
+
+<!-- AI Usage: All of the "Labor Market Health Check" page is created by AI.-->
+<!-- AI Prompt: "How can I create a simple interactive labor market game for our website where users select a group and month, see the main values, get a score, and view a small trend chart?"-->
+```

@@ -1,0 +1,419 @@
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+---
+title: "Analysis and Graphs"
+format:
+  html:
+    code-fold: true
+    code-tools: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Analysis
+
+This section explores labor market dynamics in Turkey using monthly data from 2005 to 2026.
+
+## Key Takeaways
+
+•⁠ ⁠Turkey’s labor market changed significantly between 2005 and 2026, especially during major economic and political periods.
+
+•⁠ ⁠Male employment and labor force participation rates remained consistently higher than female rates.
+
+•⁠ ⁠Gender gaps appear to be structural rather than temporary, especially in labor force participation.
+
+•⁠ ⁠Monthly unemployment averages suggest that there may be seasonal labor market patterns.
+
+•⁠ ⁠The highest unemployment months mostly coincide with periods of economic pressure or transition.
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(readr)
+library(lubridate)
+library(scales)
+library(knitr)
+
+labor_data <- read_csv(
+  "labor_final_clean.csv",
+  locale = locale(encoding = "UTF-8")
+)
+
+labor_data <- labor_data |>
+  mutate(
+    date = as.Date(date),
+    year = as.integer(year),
+    month_no = as.integer(month_no),
+    gender = factor(gender, levels = c("Total", "Male", "Female")),
+    month_en = factor(
+      month_en,
+      levels = c(
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      )
+    )
+  )
+
+total_data <- labor_data |>
+  filter(gender == "Total")
+
+gender_data <- labor_data |>
+  filter(gender %in% c("Male", "Female"))
+```
+
+## Data Check
+
+```{r}
+data_check <- labor_data |>
+  summarize(
+    number_of_rows = n(),
+    number_of_columns = ncol(labor_data),
+    first_date = min(date),
+    last_date = max(date),
+    number_of_genders = n_distinct(gender),
+    missing_values = sum(is.na(labor_data))
+  )
+
+kable(data_check)
+```
+
+## Variable Dictionary
+
+```{r}
+variable_dictionary <- tibble(
+  variable = c(
+    "year", "month_no", "month_en", "date", "gender",
+    "pop_15_plus", "labor_force", "employment", "unemployment",
+    "not_in_labor_force", "lfp_rate", "emp_rate", "unemp_rate"
+  ),
+  meaning = c(
+    "Year of observation",
+    "Month number",
+    "Month name in English",
+    "Monthly date",
+    "Gender group: Total, Male, Female",
+    "Population aged 15 and over, in thousand persons",
+    "Labor force, in thousand persons",
+    "Employed population, in thousand persons",
+    "Unemployed population, in thousand persons",
+    "Population not in labor force, in thousand persons",
+    "Labor force participation rate (%)",
+    "Employment rate (%)",
+    "Unemployment rate (%)"
+  )
+)
+
+kable(variable_dictionary)
+```
+
+## 1. General Trend Analysis
+
+```{r}
+yearly_total <- total_data |>
+  group_by(year) |>
+  summarize(
+    `Unemployment Rate` = mean(unemp_rate, na.rm = TRUE),
+    `Employment Rate` = mean(emp_rate, na.rm = TRUE),
+    `Labor Force Participation Rate` = mean(lfp_rate, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+yearly_total_long <- yearly_total |>
+  pivot_longer(
+    cols = c(`Unemployment Rate`, `Employment Rate`, `Labor Force Participation Rate`),
+    names_to = "indicator",
+    values_to = "rate"
+  )
+
+ggplot(yearly_total_long, aes(x = year, y = rate)) +
+  geom_line(linewidth = 1.1, color = "#2C5F8A") +
+  geom_point(size = 2.4, color = "#2C5F8A") +
+  facet_wrap(~ indicator, scales = "free_y", ncol = 1) +
+  labs(
+    title = "Yearly Average Labor Market Rates in Turkey",
+    subtitle = "Annual averages calculated from monthly observations, 2005–2026",
+    x = "Year",
+    y = "Average Rate (%)"
+  ) +
+  scale_x_continuous(breaks = seq(2005, 2026, by = 3)) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 11, color = "gray35"),
+    strip.text = element_text(face = "bold", size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+```
+
+We wanted to see how Turkey's labor market has been in general over the years here. The dataset contains monthly values, which we converted into annual averages. The monthly data has lots of small ups and downs so taking the yearly averages makes the main trend easier to see.
+
+Between 2005 and 2026, the unemployment rate didn’t just go straight up or straight down. In some periods it grew, especially when the economy was going through difficult times. Several of these periods were followed by a falling rate. This can be interpreted as an indication of a partial recovery in the labor market.
+
+We also looked at the unemployment rate and the labor force participation rate. The reason these are helpful is because unemployment alone can give an incomplete picture. For example, unemployment can change when people lose jobs, but it can also change when more people are looking for work or when some stop looking for work.
+
+Thus, this section presents a general overview of the changes over time in the Turkish labor market. That also shows why the unemployment rate alone is not sufficient.
+
+## 2. Gender Comparison
+
+```{r}
+yearly_gender <- gender_data |>
+  group_by(year, gender) |>
+  summarize(
+    `Unemployment Rate` = mean(unemp_rate, na.rm = TRUE),
+    `Employment Rate` = mean(emp_rate, na.rm = TRUE),
+    `Labor Force Participation Rate` = mean(lfp_rate, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+yearly_gender_long <- yearly_gender |>
+  pivot_longer(
+    cols = c(`Unemployment Rate`, `Employment Rate`, `Labor Force Participation Rate`),
+    names_to = "indicator",
+    values_to = "rate"
+  )
+
+ggplot(yearly_gender_long, aes(x = year, y = rate, color = gender)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2.2) +
+  facet_wrap(~ indicator, scales = "free_y", ncol = 1) +
+  labs(
+    title = "Gender-Based Labor Market Comparison in Turkey",
+    subtitle = "Yearly averages by gender, 2005–2026",
+    x = "Year",
+    y = "Average Rate (%)",
+    color = "Gender"
+  ) +
+  scale_x_continuous(breaks = seq(2005, 2026, by = 3)) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 11, color = "gray35"),
+    strip.text = element_text(face = "bold", size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+In this section, We compared male and female labor market indicators. The main aim was to see whether labor market conditions differ between men and women.
+
+The graph shows that men generally had higher employment and labor force participation rates than women during the whole period. This suggests that the gender gap in Turkey’s labor market is not temporary. It continued across many years.
+
+The difference is especially clear in labor force participation. In other words, the main issue is not only whether men and women are unemployed, but also whether they are included in the labor force at all.
+
+Because of this, looking only at total labor market indicators can hide some important differences. To understand the labor market better, male and female indicators should be evaluated separately.
+
+## 3. Economic and Political Period Analysis
+
+```{r}
+ggplot(total_data, aes(x = date, y = unemp_rate)) +
+  annotate("rect", xmin = as.Date("2008-01-01"), xmax = as.Date("2009-12-31"),
+           ymin = -Inf, ymax = Inf, alpha = 0.12, fill = "#D55E00") +
+  annotate("rect", xmin = as.Date("2015-01-01"), xmax = as.Date("2015-12-31"),
+           ymin = -Inf, ymax = Inf, alpha = 0.12, fill = "#0072B2") +
+  annotate("rect", xmin = as.Date("2016-01-01"), xmax = as.Date("2016-12-31"),
+           ymin = -Inf, ymax = Inf, alpha = 0.12, fill = "#CC79A7") +
+  annotate("rect", xmin = as.Date("2017-01-01"), xmax = as.Date("2017-12-31"),
+           ymin = -Inf, ymax = Inf, alpha = 0.12, fill = "#009E73") +
+  annotate("rect", xmin = as.Date("2020-03-01"), xmax = as.Date("2021-06-30"),
+           ymin = -Inf, ymax = Inf, alpha = 0.12, fill = "gray40") +
+  geom_line(linewidth = 1.1, color = "#1F3B5B") +
+  labs(
+    title = "Unemployment Rate Across Major Economic and Political Periods",
+    subtitle = "Turkey labor market trends between 2005 and 2026",
+    x = "Year",
+    y = "Unemployment Rate (%)"
+  ) +
+  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 11, color = "gray35"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
+
+# AI Usage: Annotating of critic time periods
+# AI Prompt: "I want to colorize some of critical time periods for better presentation of graph, how can I do this?"
+```
+
+In this section, we looked at unemployment movements during selected economic and political periods. The shaded areas on the graph represent major periods such as the 2008–2009 global financial crisis, political uncertainty periods, currency pressure, and the COVID-19 period.
+
+The graph shows that unemployment increased clearly around the 2008–2009 global financial crisis. Another noticeable increase can also be seen in the late 2010s and during the COVID-19 period.
+
+However, we should interpret this graph carefully. The shaded areas show a possible relationship, not direct causation. In other words, unemployment movements happened around these major economic and political periods, but the graph alone does not prove that these events were the only reasons for the changes.
+
+Still, this part of the analysis is useful because it connects the labor market indicators with real economic and political events. This makes the unemployment trend easier to understand in a broader context.
+
+## 4. Monthly Seasonality Pattern
+
+```{r}
+monthly_pattern <- total_data |>
+  group_by(month_no, month_en) |>
+  summarize(
+    avg_unemp_rate = mean(unemp_rate, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(monthly_pattern, aes(x = month_en, y = avg_unemp_rate)) +
+  geom_col(fill = "#2C5F8A", alpha = 0.85) +
+  geom_text(aes(label = round(avg_unemp_rate, 1)), vjust = -0.4, size = 3.5) +
+  labs(
+    title = "Average Unemployment Rate by Month",
+    subtitle = "Monthly averages across 2005–2026",
+    x = "Month",
+    y = "Average Unemployment Rate (%)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 11, color = "gray35"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
+```
+
+In this part, we wanted to see if unemployment changes from month to month. For that reason, we calculated the average unemployment rate for each month by using all years in the dataset.
+
+The graph shows that unemployment is not exactly equal in every month. Some months seem to have a bit higher unemployment, while some others are lower. The difference is not huge, but it is still visible.
+
+One possible reason for this is seasonal work. In Turkey, sectors like tourism, agriculture, and services can create more job opportunities in certain months. Because of this, unemployment may go down in some periods and rise again in others.
+
+So, even though the monthly pattern is not very strong, it still helps us see that unemployment is affected by seasonal factors as well as long-term economic conditions.
+
+## 5. Gender Gap Analysis
+
+```{r}
+yearly_gender_gap_data <- labor_data |>
+  filter(gender %in% c("Male", "Female")) |>
+  group_by(year, gender) |>
+  summarize(
+    avg_unemp_rate = mean(unemp_rate, na.rm = TRUE),
+    avg_emp_rate = mean(emp_rate, na.rm = TRUE),
+    avg_lfp_rate = mean(lfp_rate, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+gender_gap <- yearly_gender_gap_data |>
+  pivot_wider(
+    names_from = gender,
+    values_from = c(avg_unemp_rate, avg_emp_rate, avg_lfp_rate)
+  ) |>
+  mutate(
+    unemployment_gap = avg_unemp_rate_Female - avg_unemp_rate_Male,
+    employment_gap = avg_emp_rate_Male - avg_emp_rate_Female,
+    participation_gap = avg_lfp_rate_Male - avg_lfp_rate_Female
+  )
+
+gender_gap_long <- gender_gap |>
+  select(year, unemployment_gap, employment_gap, participation_gap) |>
+  pivot_longer(
+    cols = c(unemployment_gap, employment_gap, participation_gap),
+    names_to = "gap_type",
+    values_to = "gap_value"
+  ) |>
+  mutate(
+    gap_type = recode(
+      gap_type,
+      unemployment_gap = "Female - Male Unemployment Gap",
+      employment_gap = "Male - Female Employment Gap",
+      participation_gap = "Male - Female Participation Gap"
+    )
+  )
+
+ggplot(gender_gap_long, aes(x = year, y = gap_value)) +
+  geom_hline(yintercept = 0, linewidth = 0.6, linetype = "dashed", color = "gray45") +
+  geom_line(linewidth = 1.1, color = "#2C5F8A") +
+  geom_point(size = 2.2, color = "#2C5F8A") +
+  facet_wrap(~ gap_type, scales = "free_y", ncol = 1) +
+  labs(
+    title = "Gender Gaps in Labor Market Indicators",
+    subtitle = "Yearly average differences between male and female labor market rates",
+    x = "Year",
+    y = "Gap in percentage points"
+  ) +
+  scale_x_continuous(breaks = seq(2005, 2026, by = 3)) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 11, color = "gray35"),
+    strip.text = element_text(face = "bold", size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
+```
+
+In this part, we focused directly on the difference between men and women in the labor market. Instead of only showing male and female values on the same graph, we also calculated how large the gap is.
+
+The results show that the participation gap stayed high during the whole period. In simple terms, men were much more likely to be in the labor force than women.
+
+A similar pattern can be seen in employment. Male employment rates were higher than female employment rates in almost every year. On the other hand, the unemployment gap changed more from year to year, so it does not show the same stable pattern.
+
+Because of this, the main issue seems to be labor force participation and employment. The gender difference in Turkey’s labor market is not only about unemployment. It is also about how many women are able to enter and stay in the labor force.
+
+## 6. Highest and Lowest Unemployment Months
+
+```{r}
+highest_unemployment <- total_data |>
+  arrange(desc(unemp_rate)) |>
+  select(year, month_en, date, unemp_rate, emp_rate, lfp_rate) |>
+  slice_head(n = 10)
+
+lowest_unemployment <- total_data |>
+  arrange(unemp_rate) |>
+  select(year, month_en, date, unemp_rate, emp_rate, lfp_rate) |>
+  slice_head(n = 10)
+
+kable(highest_unemployment)
+kable(lowest_unemployment)
+
+unemployment_extremes <- bind_rows(
+  highest_unemployment |> mutate(group = "Highest Unemployment"),
+  lowest_unemployment |> mutate(group = "Lowest Unemployment")
+) |>
+  mutate(
+    period_label = paste(year, month_en),
+    period_label = reorder(period_label, unemp_rate)
+  )
+
+ggplot(unemployment_extremes, aes(x = period_label, y = unemp_rate, fill = group)) +
+  geom_col(alpha = 0.85) +
+  coord_flip() +
+  labs(
+    title = "Highest and Lowest Unemployment Months",
+    subtitle = "Top 10 highest and lowest monthly unemployment rates, 2005–2026",
+    x = "Period",
+    y = "Unemployment Rate (%)",
+    fill = "Group"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 11, color = "gray35"),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+Our next step was to look at the months in the sample that had the highest and lowest unemployment rates. Because of this, we can see the best and worst points more clearly instead of just the averages.
+
+The months with the highest unemployment mostly appeared in periods when the labor market was under pressure. This result is similar to what we saw in the yearly trend and economic period analysis.
+
+The lowest unemployment months show the periods when the labor market was relatively better. When we compare the highest and lowest months, we can see that unemployment in Turkey changed quite a lot between 2005 and 2026.
+
+Overall, this part shows that Turkey’s labor market did not stay the same over time. It was affected by short-term problems, but also by longer-term changes in the labor market.
+
+# Final Conclusion
+
+In this project, we looked at Turkey’s labor market between 2005 and 2026 from different angles. The results show that unemployment did not change because of only one reason. Some changes were related to short-term economic problems, while some differences seem to come from longer-term labor market structure.
+
+We saw that unemployment increased in some difficult periods, especially when the economy was under pressure. At the same time, employment and labor force participation rates showed that the labor market was also changing slowly over the years. The gender analysis was also important, because men and women did not have the same labor market outcomes. The biggest differences were seen in labor force participation and employment.
+
+Overall, looking only at the total unemployment rate is not enough to understand Turkey’s labor market. Gender differences, seasonal patterns, crisis periods, and the months with very high or very low unemployment should also be considered together.

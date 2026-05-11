@@ -1,24 +1,66 @@
 ---
-title: "Team XXX"
+title: ""
 sidebar: false 
 ---
 
-This is our project webpage.
+::: hero-logo
+<img src="images/laborlytics-logo.png" alt="LaborLytics Logo"/>
+:::
 
-Please stay tuned to follow our project activities.
+Welcome to our EMU430 Data Analytics final project website.
 
-This is our template.
+In this project, we analyze labor-related data to understand key patterns, trends, and insights. Our aim is to present the data clearly, explore important relationships, and summarize meaningful findings through visualizations and data analysis.
 
 # Team Members
 
-1.  [Edin_Džeko](https://tr.wikipedia.org/wiki/Edin_D%C5%BEeko)
+1.  [Erdem Tek](https://emu-hacettepe-analytics.github.io/emu430-spring2026-erdmtk/)
 
-2.  [Dušan Tadić](https://tr.wikipedia.org/wiki/Du%C5%A1an_Tadi%C4%87)
+2.  [Ömer Caner Parlak](https://emu-hacettepe-analytics.github.io/emu430-spring2026-omercanerparlak/)
 
-3.  [Frederico Rodrigues de Paula Santos](https://tr.wikipedia.org/wiki/Fred_(1993_do%C4%9Fumlu_futbolcu))
+3.  [Samet Yüce](https://emu-hacettepe-analytics.github.io/emu430-spring2026-sametyucelab/)
 
-4.  [Sebastian Szymański](https://tr.wikipedia.org/wiki/Sebastian_Szyma%C5%84ski)
+4.  [Furkan Kaan Dursun](https://emu-hacettepe-analytics.github.io/emu430-spring2026-furkankaandursun/)
+
+5.  [Ezgi Sözdemir](https://emu-hacettepe-analytics.github.io/emu430-spring2026-ezgisozdemir/)
+
+6.  [Deniz Asmaz](https://emu-hacettepe-analytics.github.io/emu430-spring2026-denizasmaz85/)
 
 # Project Topic
 
+Project Title: Investigation of Turkish Labor Market (2005-2026)
+
+The subject of our project is about the changes in Turkish job market in the last 20 years. We use the dataset “Main Labour Force Indicators” from TÜİK. The dataset consists of macroeconomic statistics for every month from January 2005 to February 2026.
+
+The main focus of this project is the change of the Turkish economy and the job market over time. Here are the things We want to do: \* Check how the major economic shifts (like pre- and post-2020 scenes) impacted employment and unemployment stats. \* Compare labor force participation and unemployment rates by gender. \* Detect if there are any seasonal patterns in the job market over a year.
+
+We’ll clean the data in R, we’ll create visualizations in ggplot2, and we’ll do some time-series analysis to find trends.
+
 # Data Set
+
+Data Source: [TÜİK - Main Labor Force Indicators](https://veriportali.tuik.gov.tr/tr/press/54061)
+
+# Key Takeaways
+
+•⁠ ⁠Turkey’s labor market changed significantly between 2005 and 2026, especially during major economic and political periods.
+
+•⁠ ⁠Male employment and labor force participation rates remained consistently higher than female rates.
+
+•⁠ ⁠Gender gaps appear to be structural rather than temporary, especially in labor force participation.
+
+•⁠ ⁠Monthly unemployment averages suggest that there may be seasonal labor market patterns.
+
+•⁠ ⁠The highest unemployment months mostly coincide with periods of economic pressure or transition.
+
+::: video-card
+<h2>Project Teaser</h2>
+
+<p>This video introduces our project topic and summarizes the main purpose of our analysis.</p>
+
+<video class="teaser" controls>
+
+<source src="videos/teaser.mp4" type="video/mp4">
+
+Your browser does not support the video tag. </video>
+
+:::
+:::
